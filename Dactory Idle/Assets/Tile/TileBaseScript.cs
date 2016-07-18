@@ -7,6 +7,8 @@ public class TileBaseScript : MonoBehaviour {
 	public int x = 0;
 	public int y = 0;
 
+	public TileSet mySet;
+
 	// Use this for initialization
 	void Start () {
 	
@@ -16,6 +18,15 @@ public class TileBaseScript : MonoBehaviour {
 	void Update () {
 	
 	}
+
+	void OnMouseDown(){
+		Grid.s.ClickTile (gameObject);
+
+	}
+
+	/*public void SetTileType(){
+		//GetComponentInChildren<SpriteRenderer>().sprite = mySet.
+	}*/
 
 	public void UpdateLocation(){
 		if (Grid.s != null) {

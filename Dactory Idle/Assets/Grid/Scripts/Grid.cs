@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+using UnityEngine.UI;
 
-[ExecuteInEditMode]
 public class Grid : MonoBehaviour {
 
 	public static Grid s;
+	string saveName = "TestGrid";
 
 	public float gridScaleX = 1f;
 	public float gridScaleY = 1f;
@@ -16,8 +20,9 @@ public class Grid : MonoBehaviour {
 
 	public TileSet tileSet;
 
-	GameObject[,] allTiles = new GameObject[10,10];
+	GameObject[,] myTiles = new GameObject[10,10];
 	public GameObject emptyTile;
+	public Tiles myTilesIDs = new Tiles();
 
 	public enum TileTypes {dirt, grass, empty};
 
@@ -25,6 +30,14 @@ public class Grid : MonoBehaviour {
 
 	public void Awake(){
 		s = this;
+		//UpdateTileSize ();
+
+		if (!Load ()) {
+			myTiles = new GameObject[gridSizeX, gridSizeY];
+			myTilesIDs.tiles = new int[gridSizeX, gridSizeY];
+		}
+
+		DrawTiles ();
 	}
 
 	void Update(){
@@ -43,23 +56,25 @@ public class Grid : MonoBehaviour {
 	public void UpdateTileSize(){
 		s = this;
 		DeleteAllTiles ();
-		allTiles = new GameObject[gridSizeX,gridSizeY];
-		ResetGrid ();
+		myTiles = new GameObject[gridSizeX,gridSizeY];
+		DrawTiles ();
 	}
 
-	public void ResetGrid(){
+	public void DrawTiles(){
 		DeleteAllTiles ();
 
-		for (int x = 0; x < allTiles.GetLength (0); x++) {
-			for (int y = 0; y < allTiles.GetLength (1); y++) {
+		for (int x = 0; x < myTiles.GetLength (0); x++) {
+			for (int y = 0; y < myTiles.GetLength (1); y++) {
 
-				GameObject myTile = (GameObject)Instantiate (emptyTile, transform.position, transform.rotation);
-				allTiles [x, y] = myTile;
+				GameObject myTile = (GameObject)Instantiate (tileSet.prefabs[myTilesIDs.tiles [x, y]], transform.position, transform.rotation);
+				myTiles [x, y] = myTile;
 
 				TileBaseScript myTileScript = myTile.GetComponent<TileBaseScript> ();
 
 				myTileScript.x = x;
 				myTileScript.y = y;
+				//myTileScript.mySet = tileSet;
+				//myTileScript.tileType = myTilesIDs.tiles [x, y];
 				myTileScript.UpdateLocation ();
 
 				myTileScript.transform.parent = transform;
@@ -68,8 +83,8 @@ public class Grid : MonoBehaviour {
 	}
 
 	void DeleteAllTiles(){
-		foreach(GameObject gam in allTiles){
-			DestroyImmediate (gam);
+		foreach(GameObject gam in myTiles){
+			Destroy (gam);
 		}
 
 		GameObject[] myChildren = new GameObject[transform.childCount];
@@ -111,19 +126,19 @@ public class Grid : MonoBehaviour {
 		int x = myTileScript.x;
 		int y = myTileScript.y;
 
-		DestroyImmediate (allTiles [x, y].gameObject);
+		Destroy (myTiles [x, y].gameObject);
 
 		GameObject tileToSpawn;
 
 		switch (myType) {
 		case TileTypes.empty:
-			tileToSpawn = emptyTile;
-			break;
-		case TileTypes.dirt:
 			tileToSpawn = tileSet.prefabs [0];
 			break;
-		case TileTypes.grass:
+		case TileTypes.dirt:
 			tileToSpawn = tileSet.prefabs [1];
+			break;
+		case TileTypes.grass:
+			tileToSpawn = tileSet.prefabs [2];
 			break;
 		default:
 			tileToSpawn = emptyTile;
@@ -131,7 +146,7 @@ public class Grid : MonoBehaviour {
 		}
 
 		GameObject myTile = (GameObject)Instantiate (tileToSpawn, transform.position, transform.rotation);
-		allTiles [x, y] = myTile;
+		myTiles [x, y] = myTile;
 
 		myTileScript = myTile.GetComponent<TileBaseScript> ();
 
@@ -143,4 +158,38 @@ public class Grid : MonoBehaviour {
 
 	}
 
+	void OnApplicationQuit(){
+		Save ();
+	}
+
+	public void Save (){
+		BinaryFormatter bf = new BinaryFormatter ();
+		FileStream file = File.Create (Application.persistentDataPath + "/" + saveName + ".banana");
+
+		Tiles data = myTilesIDs;
+
+		bf.Serialize (file, data);
+		file.Close ();
+	}
+
+	public bool Load(){
+		if (File.Exists (Application.persistentDataPath + "/" + saveName + ".banana")) {
+			BinaryFormatter bf = new BinaryFormatter ();
+			FileStream file = File.Open (Application.persistentDataPath + "/" + saveName + ".banana", FileMode.Open);
+			Tiles data = (Tiles)bf.Deserialize (file);
+			file.Close ();
+
+			myTilesIDs = data;
+			myTiles = new GameObject[myTilesIDs.tiles.GetLength (0), myTilesIDs.tiles.GetLength (0)];
+			return true;
+		} else {
+			return false;
+		}
+	}
+}
+
+
+[Serializable]
+public class Tiles {
+	public int[,] tiles;
 }

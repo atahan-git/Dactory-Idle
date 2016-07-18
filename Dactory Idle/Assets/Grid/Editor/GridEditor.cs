@@ -18,24 +18,24 @@ public class GridEditor : Editor {
 		DrawDefaultInspector ();
 
 
-		if (GUILayout.Button ("Update Tile Size")) {
+		/*if (GUILayout.Button ("Update Tile Size")) {
 			grid.Awake ();
 			grid.UpdateTileSize ();
 		}
 
 		if (GUILayout.Button ("Reset Grid")) {
 			grid.Awake ();
-			grid.ResetGrid ();
-		}
+			grid.DrawTiles ();
+		}*/
 	}
 
-	void OnSceneGUI(){
+	/*void OnSceneGUI(){
 		//Debug.Log (Event.current.mousePosition);
 		Event e = Event.current;
-		if (e.type == EventType.mouseDown && e.alt && !e.control/*Event.current.type == EventType.mouseDown && Event.current.keyCode == (KeyCode.LeftAlt)*/) {
+		if (e.type == EventType.mouseDown && e.alt && !e.control/*Event.current.type == EventType.mouseDown && Event.current.keyCode == (KeyCode.LeftAlt)) {
 
 			if (Camera.current != null) {
-				Ray ray = SceneView.lastActiveSceneView.camera.ScreenPointToRay(new Vector2(Event.current.mousePosition.x , SceneView.lastActiveSceneView.camera.pixelHeight - Event.current.mousePosition.y)/*Input.mousePosition*/);
+				Ray ray = SceneView.lastActiveSceneView.camera.ScreenPointToRay(new Vector2(Event.current.mousePosition.x , SceneView.lastActiveSceneView.camera.pixelHeight - Event.current.mousePosition.y)/*Input.mousePosition);
 
 				RaycastHit hit = new RaycastHit();
 				Debug.DrawLine(ray.origin, ray.origin + ray.direction * 1000);
@@ -52,5 +52,5 @@ public class GridEditor : Editor {
 
 
 		}
-	}
+	}*/
 }
