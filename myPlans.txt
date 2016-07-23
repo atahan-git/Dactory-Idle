@@ -1,0 +1,3 @@
+Make the game more simple for mobile
+input required => less need to redesign factory every now and then
+smaller factory at all times

@@ -18,12 +18,11 @@ public class GridEditor : Editor {
 		DrawDefaultInspector ();
 
 
-		/*if (GUILayout.Button ("Update Tile Size")) {
-			grid.Awake ();
+		if (GUILayout.Button ("Update Tile Size")) {
 			grid.UpdateTileSize ();
 		}
 
-		if (GUILayout.Button ("Reset Grid")) {
+		/*if (GUILayout.Button ("Reset Grid")) {
 			grid.Awake ();
 			grid.DrawTiles ();
 		}*/

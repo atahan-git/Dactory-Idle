@@ -7,7 +7,12 @@ public class TileBaseScript : MonoBehaviour {
 	public int x = 0;
 	public int y = 0;
 
-	public TileSet mySet;
+	static bool isDragStarted = false;
+
+	public bool itemPlaceable = false;
+	public bool beltPlaceable = false;
+
+	//public TileSet mySet;
 
 	// Use this for initialization
 	void Start () {
@@ -16,12 +21,27 @@ public class TileBaseScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+		if (isDragStarted && Input.GetMouseButtonUp (0)) {
+			//print ("drag end");
+			isDragStarted = false;
+		}
 	}
 
 	void OnMouseDown(){
+		//print ("drag start");
+		isDragStarted = true;
 		Grid.s.ClickTile (gameObject);
+	}
 
+	void OnMouseOver(){
+		if (isDragStarted) {
+			Grid.s.ClickTile (gameObject);
+		}
+	}
+
+	void OnMouseUp(){
+		//print ("drag end");
+		isDragStarted = false;
 	}
 
 	/*public void SetTileType(){

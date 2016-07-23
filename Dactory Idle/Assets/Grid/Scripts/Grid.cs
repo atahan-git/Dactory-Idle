@@ -24,9 +24,7 @@ public class Grid : MonoBehaviour {
 	public GameObject emptyTile;
 	public Tiles myTilesIDs = new Tiles();
 
-	public enum TileTypes {dirt, grass, empty};
-
-	public TileTypes myType = TileTypes.empty;
+	public int myType = 0;
 
 	public void Awake(){
 		s = this;
@@ -40,24 +38,80 @@ public class Grid : MonoBehaviour {
 		DrawTiles ();
 	}
 
+	public Vector2[] rectangleSelect = new Vector2[2];
+
 	void Update(){
-		//transform.position = Vector3.up;
-		if (Application.isPlaying) {
 
-
-		} else {
-
-
-
+		if (Input.GetKeyDown (KeyCode.Alpha0)) {
+			myType = 0;
+		}
+		if (Input.GetKeyDown (KeyCode.Alpha1)) {
+			myType = 1;
+		}
+		if (Input.GetKeyDown (KeyCode.Alpha2)) {
+			myType = 2;
+		}
+		if (Input.GetKeyDown (KeyCode.Alpha3)) {
+			myType = 3;
+		}
+		if (Input.GetKeyDown (KeyCode.Alpha4)) {
+			myType = 4;
+		}
+		if (Input.GetKeyDown (KeyCode.Alpha5)) {
+			myType = 5;
 		}
 
+		if (Input.GetMouseButtonDown (1)) {
+			RaycastHit hit = new RaycastHit();
+			if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 10000f)){
+				TileBaseScript tileS;
+				try{
+					tileS = hit.collider.gameObject.GetComponent<TileBaseScript>();
+				}catch{return;}
+					
+				rectangleSelect [0] = new Vector2 (tileS.x, tileS.y);
+
+			}
+		}
+
+		if (Input.GetMouseButtonUp (1)) {
+			RaycastHit hit = new RaycastHit();
+			if (Physics.Raycast (Camera.main.ScreenPointToRay (Input.mousePosition), out hit, 10000f)) {
+				TileBaseScript tileS;
+				try {
+					tileS = hit.collider.gameObject.GetComponent<TileBaseScript> ();
+				} catch {
+					return;
+				}
+
+
+				rectangleSelect [1] = new Vector2 (tileS.x, tileS.y);
+				RectangleSelect (rectangleSelect);
+				rectangleSelect = new Vector2[2];
+
+			} else {
+				rectangleSelect = new Vector2[2];
+			}
+		}
+	}
+
+	void RectangleSelect(Vector2[] selection){
+		for (int x = (int)selection [0].x; x <= selection [1].x; x++) {
+			for (int y = (int)selection [1].y; y <= selection [0].y; y++) {
+				
+				ClickTile (myTiles [x, y]);
+
+			}
+		}
 	}
 
 	public void UpdateTileSize(){
-		s = this;
-		DeleteAllTiles ();
-		myTiles = new GameObject[gridSizeX,gridSizeY];
-		DrawTiles ();
+		//s = this;
+		//DeleteAllTiles ();
+		myTiles = new GameObject[gridSizeX, gridSizeY];
+		myTilesIDs.tiles = new int[gridSizeX, gridSizeY];
+		Save ();
+		//DrawTiles ();
 	}
 
 	public void DrawTiles(){
@@ -130,20 +184,8 @@ public class Grid : MonoBehaviour {
 
 		GameObject tileToSpawn;
 
-		switch (myType) {
-		case TileTypes.empty:
-			tileToSpawn = tileSet.prefabs [0];
-			break;
-		case TileTypes.dirt:
-			tileToSpawn = tileSet.prefabs [1];
-			break;
-		case TileTypes.grass:
-			tileToSpawn = tileSet.prefabs [2];
-			break;
-		default:
-			tileToSpawn = emptyTile;
-			break;
-		}
+		tileToSpawn = tileSet.prefabs [myType];
+		myTilesIDs.tiles [x, y] = myType;
 
 		GameObject myTile = (GameObject)Instantiate (tileToSpawn, transform.position, transform.rotation);
 		myTiles [x, y] = myTile;
@@ -156,6 +198,7 @@ public class Grid : MonoBehaviour {
 
 		myTileScript.transform.parent = transform;
 
+		//Save ();
 	}
 
 	void OnApplicationQuit(){
@@ -170,6 +213,7 @@ public class Grid : MonoBehaviour {
 
 		bf.Serialize (file, data);
 		file.Close ();
+		print ("Data Saved");
 	}
 
 	public bool Load(){
@@ -180,7 +224,10 @@ public class Grid : MonoBehaviour {
 			file.Close ();
 
 			myTilesIDs = data;
-			myTiles = new GameObject[myTilesIDs.tiles.GetLength (0), myTilesIDs.tiles.GetLength (0)];
+			gridSizeX = myTilesIDs.tiles.GetLength (0);
+			gridSizeY = myTilesIDs.tiles.GetLength (1);
+			myTiles = new GameObject[gridSizeX, gridSizeY];
+			print ("Data Loaded");
 			return true;
 		} else {
 			return false;
