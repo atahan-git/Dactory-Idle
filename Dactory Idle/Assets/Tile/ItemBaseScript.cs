@@ -17,6 +17,7 @@ public class ItemBaseScript : MonoBehaviour {
 
 	public GameObject[] mySprites = new GameObject[50];
 
+	bool isPlaceAble = true;
 	// Use this for initialization
 	void Start () {
 		int n = 0;
@@ -40,6 +41,37 @@ public class ItemBaseScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		CheckPlaceable ();
+	}
+
+	public void PlaceSelf(){
+		CheckPlaceable();
+
+		if(isPlaceAble){
+			GameObject InstantiatedItem = (GameObject)Instantiate (myPlacedItem, transform.position, Quaternion.identity);
+
+			foreach (GameObject thisSprite in mySprites) {
+				ItemSprite mySprite;
+				try{
+					mySprite = thisSprite.GetComponentInChildren<ItemSprite> ();
+				}catch{
+					return;
+				}
+				int checkX = x - mySprite.x;
+				int checkY = y - mySprite.y;
+
+				try{
+					TileBaseScript myTile = Grid.s.myTiles [checkX, checkY].GetComponent<TileBaseScript> ();
+					myTile.itemPlaceable = false;
+					myTile.areThereItem = true;
+					myTile.myItem = InstantiatedItem;
+				}catch{}
+			}
+		}
+	}
+
+	void CheckPlaceable(){
+		isPlaceAble = true;
 		foreach (GameObject thisSprite in mySprites) {
 			ItemSprite mySprite;
 			try{
@@ -64,13 +96,9 @@ public class ItemBaseScript : MonoBehaviour {
 				mySprite.Placeable ();
 			} else {
 				mySprite.CantPlace ();
+				isPlaceAble = false;
 			}
 		}
-	}
-
-	public void PlaceSelf(){
-		Instantiate (myPlacedItem, transform.position, transform.rotation);
-
 	}
 	/*[System.Serializable]
 	public class MultBool{

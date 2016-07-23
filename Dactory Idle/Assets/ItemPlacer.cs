@@ -3,9 +3,13 @@ using System.Collections;
 
 public class ItemPlacer : MonoBehaviour {
 
+	public GameObject beltPrefab;
 	public GameObject[] items;
 	public GameObject curItem;
 	public ItemBaseScript itemScript;
+
+	public bool isPlacingItem = false;
+	public bool isMovementEnabled = true;
 
 	public int curItemId = 0;
 
@@ -18,6 +22,9 @@ public class ItemPlacer : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		if (!isPlacingItem)
+			return;
+
 		if (Input.touchCount > 0) {
 			Ray myRay = mycam.ScreenPointToRay (Input.GetTouch (0).position);
 			RaycastHit hit = new RaycastHit ();
@@ -31,9 +38,10 @@ public class ItemPlacer : MonoBehaviour {
 
 				itemScript.x = tileS.x;
 				itemScript.y = tileS.y;
-				curItem.transform.position = tileS.transform.position;
+				curItem.transform.position = tileS.transform.position; 
 			}
 		} else {
+			isPlacingItem = false;
 			if (curItem != null) {
 				itemScript.PlaceSelf ();
 				Destroy (curItem.gameObject);
@@ -43,15 +51,16 @@ public class ItemPlacer : MonoBehaviour {
 		}
 	}
 
-	public void SelectItem (int id) {
-
-		curItemId = id;
-	}
-
 	public void PlaceItem (int id) {
 		print ("place item");
+		isPlacingItem = true;
 		curItemId = id;
-		curItem = (GameObject)Instantiate (items[curItemId], transform.position, transform.rotation);
+		curItem = (GameObject)Instantiate (items[curItemId], transform.position, Quaternion.identity);
 		itemScript = curItem.GetComponent<ItemBaseScript> ();
+	}
+
+	//--------------------------------------------------------------------------------------------------BELT STUFF
+	public void ActivateBeltMode(){
+		isMovementEnabled = false;
 	}
 }
