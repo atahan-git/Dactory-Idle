@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class Grid : MonoBehaviour {
 
+	public bool canEditTiles = false;
+	public bool canDrawGizmos = false;
+
 	public static Grid s;
 	string saveName = "TestGrid";
 
@@ -20,7 +23,8 @@ public class Grid : MonoBehaviour {
 
 	public TileSet tileSet;
 
-	GameObject[,] myTiles = new GameObject[10,10];
+	[HideInInspector]
+	public GameObject[,] myTiles = new GameObject[10,10];
 	public GameObject emptyTile;
 	public Tiles myTilesIDs = new Tiles();
 
@@ -41,6 +45,8 @@ public class Grid : MonoBehaviour {
 	public Vector2[] rectangleSelect = new Vector2[2];
 
 	void Update(){
+		if (!canEditTiles)
+			return;
 
 		if (Input.GetKeyDown (KeyCode.Alpha0)) {
 			myType = 0;
@@ -154,6 +160,8 @@ public class Grid : MonoBehaviour {
 	}
 
 	void OnDrawGizmos(){
+		if (!canDrawGizmos)
+			return;
 		//Vector3 pos = Camera.current.transform.position;
 		Gizmos.color = this.color;
 
@@ -172,6 +180,9 @@ public class Grid : MonoBehaviour {
 	}
 
 	public void ClickTile(GameObject tile){
+		if (!canEditTiles)
+			return;
+		
 		s = this;
 		//print (tile);
 
@@ -230,6 +241,7 @@ public class Grid : MonoBehaviour {
 			print ("Data Loaded");
 			return true;
 		} else {
+			print ("No Data Found");
 			return false;
 		}
 	}

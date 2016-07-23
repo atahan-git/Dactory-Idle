@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ItemBaseScript : MonoBehaviour {
-
+public class PlacedItemBaseScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {

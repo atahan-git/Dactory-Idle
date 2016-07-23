@@ -21,7 +21,25 @@ public class ItemPlacer : MonoBehaviour {
 		if (Input.touchCount > 0) {
 			Ray myRay = mycam.ScreenPointToRay (Input.GetTouch (0).position);
 			RaycastHit hit = new RaycastHit ();
-			//if(
+			if (Physics.Raycast (myRay, out hit)) {
+				TileBaseScript tileS;
+				try {
+					tileS = hit.collider.gameObject.GetComponent<TileBaseScript> ();
+				} catch {
+					return;
+				}
+
+				itemScript.x = tileS.x;
+				itemScript.y = tileS.y;
+				curItem.transform.position = tileS.transform.position;
+			}
+		} else {
+			if (curItem != null) {
+				itemScript.PlaceSelf ();
+				Destroy (curItem.gameObject);
+				curItem = null;
+				itemScript = null;
+			}
 		}
 	}
 
@@ -31,6 +49,7 @@ public class ItemPlacer : MonoBehaviour {
 	}
 
 	public void PlaceItem (int id) {
+		print ("place item");
 		curItemId = id;
 		curItem = (GameObject)Instantiate (items[curItemId], transform.position, transform.rotation);
 		itemScript = curItem.GetComponent<ItemBaseScript> ();
