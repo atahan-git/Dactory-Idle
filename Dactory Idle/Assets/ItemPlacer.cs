@@ -130,8 +130,7 @@ public class ItemPlacer : MonoBehaviour {
 						if (b_lastBelt != null) {										//there was a belt before this one - update its out stuff
 							UpdateBeltInOut (b_lastTile, tileS, b_lastBelt, false);
 
-							b_lastBelt.feedingBelts [b_lastBelt.n_belt] = myBelt;
-							b_lastBelt.n_belt++;
+							b_lastBelt.feedingBelts [movementToArrayNum(b_lastTile,tileS)] = myBelt;
 						}
 
 						if (b_lastItem != null) {										//there was an item before us - update its out stuff
@@ -162,15 +161,13 @@ public class ItemPlacer : MonoBehaviour {
 
 						} else if (b_lastBelt != null && b_lastItem == null && myBelt != null) {	//belt to belt
 							UpdateBeltInOut (b_lastTile, tileS, b_lastBelt, false);
-							b_lastBelt.feedingBelts [b_lastBelt.n_belt] = myBelt;
-							b_lastBelt.n_belt++;
+							b_lastBelt.feedingBelts [movementToArrayNum(b_lastTile,tileS)] = myBelt;
 
 							UpdateBeltInOut (b_lastTile, tileS, myBelt, true);
 
 						} else if (b_lastBelt != null && b_lastItem == null && myItem != null) {	//belt to item
 							UpdateBeltInOut (b_lastTile, tileS, b_lastBelt, false);
-							b_lastBelt.feedingItems [b_lastBelt.n_item] = myItem;
-							b_lastBelt.n_item++;
+							b_lastBelt.feedingItems [movementToArrayNum(b_lastTile,tileS)] = myItem;
 
 							myItem.inConveyors [myItem.n_in] = b_lastBelt;
 							myItem.n_in++;
@@ -219,5 +216,25 @@ public class ItemPlacer : MonoBehaviour {
 		}
 
 		myBelt.UpdateGraphic ();
+	}
+
+	int movementToArrayNum (TileBaseScript lastTile, TileBaseScript thisTile) {
+		int x = lastTile.x;
+		int xOther = thisTile.x;
+		int y = lastTile.y;
+		int yOther = thisTile.y;
+
+		if (x > xOther)      //left
+			return 0;
+		else if (x < xOther) //right
+			return 2;
+		else if (y > yOther) //down
+			return 3;
+		else if (y < yOther) //up
+			return 1;
+		else {
+			Debug.LogError ("erorrr");
+			return -1;
+		}
 	}
 }
