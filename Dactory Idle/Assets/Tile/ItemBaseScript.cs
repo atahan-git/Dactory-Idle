@@ -49,6 +49,7 @@ public class ItemBaseScript : MonoBehaviour {
 
 		if(isPlaceAble){
 			GameObject InstantiatedItem = (GameObject)Instantiate (myPlacedItem, transform.position, Quaternion.identity);
+			PlacedItemBaseScript InstItemScript = InstantiatedItem.GetComponent<PlacedItemBaseScript> ();
 
 			foreach (GameObject thisSprite in mySprites) {
 				ItemSprite mySprite;
@@ -62,9 +63,11 @@ public class ItemBaseScript : MonoBehaviour {
 
 				try{
 					TileBaseScript myTile = Grid.s.myTiles [checkX, checkY].GetComponent<TileBaseScript> ();
-					myTile.itemPlaceable = false;
+					//myTile.itemPlaceable = false;
 					myTile.areThereItem = true;
 					myTile.myItem = InstantiatedItem;
+					InstItemScript.tilesCovered[InstItemScript.n_cover] = myTile;
+					InstItemScript.n_cover++;
 				}catch{}
 			}
 		}
@@ -85,12 +88,12 @@ public class ItemBaseScript : MonoBehaviour {
 			//print (checkX + " - " + checkY);
 
 			bool myVal = false;
-
 			try{
-				myVal = Grid.s.myTiles [checkX, checkY].GetComponent<TileBaseScript> ().itemPlaceable;
-			}catch{
+				if (!Grid.s.myTiles [checkX, checkY].GetComponent<TileBaseScript> ().areThereItem)
+					myVal = Grid.s.myTiles [checkX, checkY].GetComponent<TileBaseScript> ().itemPlaceable;
+			}catch{}
 
-			}
+
 
 			if (myVal) {
 				mySprite.Placeable ();
