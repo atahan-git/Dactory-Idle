@@ -3,11 +3,11 @@ using System.Collections;
 
 public class BeltPulseControl : MonoBehaviour {
 
-	public delegate void FirstPulse();
-	public static event FirstPulse firstPulse;
+	public delegate void ForwardsPulse();
+	public static event ForwardsPulse forwardsPulse;
 
-	public delegate void SecondPulse();
-	public static event SecondPulse secondPulse;
+	public delegate void BackwardsPulse(Object sender);
+	public static event BackwardsPulse pulseEvent;
 
 	public float pulseTime = 0.3f;
 
@@ -22,9 +22,17 @@ public class BeltPulseControl : MonoBehaviour {
 	}
 
 	void Pulsate () {
-		if (firstPulse != null) {
-			firstPulse ();
-			secondPulse ();
+
+		//print ("------------------PulseStarts-----------------");
+		/*if (forwardsPulse != null) {
+			forwardsPulse ();
+		}*/
+		if (pulseEvent != null) {
+			//print ("checksss");
+			pulseEvent (this);
 		}
+
+
+		//print ("------------------PulseEnds------------------");
 	}
 }

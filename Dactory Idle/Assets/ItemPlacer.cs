@@ -66,6 +66,8 @@ public class ItemPlacer : MonoBehaviour {
 		UIBeltThingy.SetActive (false);
 		curItemId = id;
 		curItem = (GameObject)Instantiate (items[curItemId], transform.position, Quaternion.identity);
+		curItem.gameObject.name = curItem.gameObject.name + " - " + n;
+		n++;
 		itemScript = curItem.GetComponent<ItemBaseScript> ();
 	}
 
@@ -92,6 +94,8 @@ public class ItemPlacer : MonoBehaviour {
 	BeltScript b_lastBelt;
 	TileBaseScript b_lastTile;
 
+	int n = 0;
+
 	void PlaceBeltsCheck () {
 		if (Input.touchCount > 0) {
 			Ray myRay = mycam.ScreenPointToRay (Input.GetTouch (0).position);
@@ -111,6 +115,10 @@ public class ItemPlacer : MonoBehaviour {
 				if (b_lastTile != null) {												//how much did we moved - if too much do shit
 					if (Mathf.Abs (b_lastTile.x - tileS.x) >= 2 || Mathf.Abs (b_lastTile.y - tileS.y) >= 2 || Mathf.Abs (b_lastTile.y - tileS.y) + Mathf.Abs (b_lastTile.x - tileS.x) >= 2) {
 						print ("we moved 2 blocks");
+
+						if (b_lastBelt != null)
+							b_lastBelt.UpdateGraphic ();
+
 						b_lastBelt = null;
 						b_lastItem = null;
 						b_lastTile = null;
@@ -120,6 +128,8 @@ public class ItemPlacer : MonoBehaviour {
 				if (tileS.beltPlaceable) {					//can we place a belt here
 					if (!tileS.areThereItem) {											//there are no items here so place a belt
 						BeltScript myBelt = ((GameObject)Instantiate (beltPrefab, tileS.transform.position, Quaternion.identity)).GetComponent<BeltScript> ();
+						myBelt.gameObject.name = myBelt.gameObject.name + " - " + n;
+						n++;
 						tileS.areThereItem = true;
 						tileS.myItem = myBelt.gameObject;
 
@@ -131,12 +141,19 @@ public class ItemPlacer : MonoBehaviour {
 							UpdateBeltInOut (b_lastTile, tileS, b_lastBelt, false);
 
 							b_lastBelt.feedingBelts [movementToArrayNum(b_lastTile,tileS)] = myBelt;
+							myBelt.inputBelts [RevertLocation (movementToArrayNum (b_lastTile, tileS))] = b_lastBelt;
 						}
 
 						if (b_lastItem != null) {										//there was an item before us - update its out stuff
 							b_lastItem.outConveyors [b_lastItem.n_out] = myBelt;
 							b_lastItem.n_out++;
+							myBelt.inputItems [RevertLocation (movementToArrayNum (b_lastTile, tileS))] = b_lastItem;
 						}
+
+						if (b_lastBelt != null)
+							b_lastBelt.UpdateGraphic ();
+						if (myBelt != null)
+							myBelt.UpdateGraphic ();
 
 						b_lastBelt = myBelt;
 						b_lastItem = null;
@@ -157,11 +174,13 @@ public class ItemPlacer : MonoBehaviour {
 						} else if (b_lastBelt == null && b_lastItem != null && myBelt != null) {	//item to belt
 							b_lastItem.outConveyors [b_lastItem.n_out] = myBelt;
 							b_lastItem.n_out++;
+							b_lastBelt.inputItems [RevertLocation (movementToArrayNum (b_lastTile, tileS))] = b_lastItem;
 							UpdateBeltInOut (b_lastTile, tileS, myBelt, true);
 
 						} else if (b_lastBelt != null && b_lastItem == null && myBelt != null) {	//belt to belt
 							UpdateBeltInOut (b_lastTile, tileS, b_lastBelt, false);
 							b_lastBelt.feedingBelts [movementToArrayNum(b_lastTile,tileS)] = myBelt;
+							myBelt.inputBelts [RevertLocation (movementToArrayNum (b_lastTile, tileS))] = b_lastBelt;
 
 							UpdateBeltInOut (b_lastTile, tileS, myBelt, true);
 
@@ -176,6 +195,11 @@ public class ItemPlacer : MonoBehaviour {
 							Debug.LogError ("weird shit happened: " + b_lastTile + " - " + tileS + " - " + b_lastBelt + " - " + b_lastItem + " - " + myBelt + " - " + myItem);
 						}
 
+						if (b_lastBelt != null)
+							b_lastBelt.UpdateGraphic ();
+						if (myBelt != null)
+							myBelt.UpdateGraphic ();
+
 						b_lastBelt = myBelt;
 						b_lastItem = myItem;
 						b_lastTile = tileS;
@@ -183,6 +207,9 @@ public class ItemPlacer : MonoBehaviour {
 				} 
 			}
 		} else {
+			if (b_lastBelt != null)
+				b_lastBelt.UpdateGraphic ();
+
 			b_lastBelt = null;
 			b_lastItem = null;
 			b_lastTile = null;
@@ -215,7 +242,7 @@ public class ItemPlacer : MonoBehaviour {
 				myBelt.outLocations [1] = true;
 		}
 
-		myBelt.UpdateGraphic ();
+		//myBelt.UpdateGraphic ();
 	}
 
 	int movementToArrayNum (TileBaseScript lastTile, TileBaseScript thisTile) {
@@ -235,6 +262,29 @@ public class ItemPlacer : MonoBehaviour {
 		else {
 			Debug.LogError ("erorrr");
 			return -1;
+		}
+	}
+
+	int RevertLocation(int location){
+		//return location;
+
+		switch (location) {
+		case 0:
+			return 2;
+			break;
+		case 1:
+			return 3;
+			break;
+		case 2:
+			return 0;
+			break;
+		case 3:
+			return 1;
+			break;
+		default:
+			Debug.LogError("given wrong number: " + location);
+			return -1;
+			break;
 		}
 	}
 }

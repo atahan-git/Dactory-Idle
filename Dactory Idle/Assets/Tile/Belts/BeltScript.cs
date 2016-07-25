@@ -3,13 +3,13 @@ using System.Collections;
 
 public class BeltScript : MonoBehaviour {
 
-	[HideInInspector]
+	//[HideInInspector]
 	public Place[] inputStorage = new Place[4];
-	[HideInInspector]
+	//[HideInInspector]
 	public Place[] outputStorage = new Place[4];
-	[HideInInspector]
+	//[HideInInspector]
 	public Place middleStorage;
-	[HideInInspector]
+	//[HideInInspector]
 	public Place toBeGone;
 
 	//[HideInInspector]
@@ -17,7 +17,7 @@ public class BeltScript : MonoBehaviour {
 	public PlacedItemBaseScript[] inputItems = new PlacedItemBaseScript[4];
 	//[HideInInspector]
 	public BeltScript[] feedingBelts = new BeltScript[4];
-	public BeltScript[] inpuBelts = new BeltScript[4];
+	public BeltScript[] inputBelts = new BeltScript[4];
 
 	[HideInInspector]
 	public bool[] inLocations = new bool[4];
@@ -32,7 +32,7 @@ public class BeltScript : MonoBehaviour {
 
 	public BeltSet mySet;
 
-	float itemOffset = 0.25f;
+	float itemOffset = 0.33f;
 	float toBeGoneMult = 1.5f;
 
 	[HideInInspector]
@@ -41,175 +41,170 @@ public class BeltScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		middleStorage = new Place (Vector3.zero, 0);
-		BeltPulseControl.firstPulse += FirstPulse;
-		BeltPulseControl.secondPulse += SecondPulse;
 	}
 	
 	void OnDestroy () {
-		BeltPulseControl.firstPulse -= FirstPulse;
-		BeltPulseControl.secondPulse -= SecondPulse;
 	}
+		
+	/*public void ForwardsPulse () {
+
+	}*/
+
+
+	public void PrimalBackwardsPulse (Object sender) { 
+		//print ("Primal Pulse - " + sender + " -> "  + gameObject.name);
+		curPulseCount--;
+		BackwardsPulse ();
+	}
+
+
+	public int reqPulseCount = 0;
+	//int defPulseCount = 0;
+	public int curPulseCount = 0;
 
 	int n = 0;
 	int m = 0;
 	int k = 0;
-	public void FirstPulse () {
-		int sPlace = -1;
-		if (toBeGone == null) {								//no item to be gone
 
-			for (int i = 0; i <= 3; i++) {
-				if (outputStorage [i] != null) {
-					if (outputStorage [i].myItem != null) {	//find and conveyor going clockwise
-						if (i != n) {
-							sPlace = i;
-							n = i;
+	public void BackwardsPulse () { 
+		if (reqPulseCount < curPulseCount)
+			Debug.LogError ("too many backward calls");
+
+		curPulseCount++;
+
+		//print (curPulseCount + " - " + reqPulseCount + " - " + gameObject.name);
+
+		if (reqPulseCount == curPulseCount) {		//if we recieved all the pulses we need
+			for (int i = 0; i <= 3; i++) {																				//OUTPUT SORT
+				if (outputStorage [n].n != -1) {
+					if (outputStorage [n].myItem == null) {							//check if we have and item to give
+						CycleArray (ref n);				
+
+					} else if (feedingBelts [n] != null) {							//if there is a belt here
+						if (feedingBelts [n].inputStorage [RevertLocation (n)].myItem == null) {	
+							feedingBelts [n].inputStorage [RevertLocation (n)].myItem = outputStorage [n].myItem;
+							feedingBelts [n].UpdateItemLocations ();
+							outputStorage [n].myItem = null;
 							break;
+						} else {
+							CycleArray (ref n);
 						}
+					} else if (feedingItems [n] != null) {							//if there is a item here
+						if (feedingItems [n].TryAccepting (outputStorage [n].myItem, outputStorage[n].offSet)) {
+							outputStorage [n].myItem = null;
+							break;
+						} else {
+							CycleArray (ref n);
+						}
+					} else {														//if there is nothing here
+						CycleArray (ref n);
 					}
+				} else {
+					CycleArray (ref n);
 				}
 			}
-			if (sPlace == -1)								//if cant find set the last one
-				sPlace = n;
+			CycleArray (ref n);
 
-			if (outputStorage [sPlace] != null) {			//set to be gone
-				toBeGone = outputStorage [sPlace];
-				outputStorage [sPlace].myItem = null;
 
-				if (middleStorage.myItem != null) {			//set that one
-					outputStorage [sPlace].myItem = middleStorage.myItem;
-					middleStorage.myItem = null;
-				}
-			}
-		}
-			
-
-		if (middleStorage.myItem != null) {					//if middle is full but there is an empty out conveyor fill it
-			sPlace = -1;
-			for (int i = 0; i <= 3; i++) {
-				if (outputStorage [i] != null) {
-					if (outputStorage [i].myItem == null) {
-						if (i != m) {
-							outputStorage [i].myItem = middleStorage.myItem;
+			if (middleStorage.myItem != null) {		//if there is an item in the middle
+				for (int i = 0; i <= 3; i++) {																			//MIDDLE SORT
+					if (outputStorage [m].n != -1) {	//cycle
+						if (outputStorage [m].myItem == null) {
+							outputStorage [m].myItem = middleStorage.myItem;
 							middleStorage.myItem = null;
-							sPlace = i;
-							m = i;
+							CycleArray (ref m);
 							break;
+						} else {
+							CycleArray (ref m);
 						}
+					} else {
+						CycleArray (ref m);
 					}
 				}
 			}
-			if (sPlace == -1)								//if cant find set the last one
-				sPlace = m;
-			
-			if (middleStorage.myItem != null) {				//hardcore shit m8 prob gonna fail but....... yeah
-				if (outputStorage [m] != null) {
-					if (outputStorage [m].myItem == null) {
-						outputStorage [m].myItem = middleStorage.myItem;
-						middleStorage.myItem = null;
+
+			if (middleStorage.myItem == null) {	
+				for (int i = 0; i <= 3; i++) {																				//INPUT SORT
+					if (inputStorage [k].n != -1) {
+						if (inputStorage [k].myItem != null) {	//if input have item
+							middleStorage.myItem = inputStorage [k].myItem;
+							inputStorage [k].myItem = null;
+							break;
+						} else {
+							CycleArray (ref k);
+						}
+					} else {
+						CycleArray (ref k);
 					}
 				}
+				CycleArray (ref k);
+			}
+
+			UpdateItemLocations ();
+
+			curPulseCount = 0;
+			SendBackwardsPulse ();												//our job here is done
+		} else {
+
+
+		}
+	}
+
+
+	void SendBackwardsPulse () {
+		foreach (PlacedItemBaseScript pitem in inputItems) {
+			if (pitem != null) {
+				//print (gameObject.name + " -> " + pitem.gameObject.name);
+				pitem.BackwardsPulse ();
 			}
 		}
 
-		if (middleStorage.myItem == null) {					//if middle is empty try to fill it
-			sPlace = -1;
-			for (int i = 0; i <= 3; i++) {
-				if (inputStorage [i] != null) {
-					if (inputStorage [i].myItem != null) {	//find and conveyor going clockwise
-						if (i != k) {
-							sPlace = i;
-							k = i;
-							break;
-						}
-					}
-				}
-			}
-			if (sPlace == -1)								//if cant find set the last one
-				sPlace = k;
-			
-			if (inputStorage [sPlace] != null) {			//fill the middle
-				middleStorage.myItem = inputStorage [sPlace].myItem;
-				inputStorage [sPlace].myItem = null;
-
+		foreach (BeltScript myBelt in inputBelts) {
+			if (myBelt != null) {
+				//print (gameObject.name + " -> "  + myBelt.gameObject.name);
+				myBelt.BackwardsPulse ();
 			}
 		}
 	}
 
-	public void SecondPulse (){ 
-		
-		if (toBeGone == null)
-			return;
-		if (feedingBelts [n] != null) {					//first check if n exist and empty
-			if (feedingBelts [n].inputStorage [RevertLocation (n)] != null) {
-				if (feedingBelts [n].inputStorage [RevertLocation (n)].myItem == null) {
-					feedingBelts [n].inputStorage [RevertLocation (n)].myItem = toBeGone.myItem;
-					toBeGone = null;
-					feedingBelts [n].UpdateItemLocations ();
-				}
-			}
-		}
-		if (toBeGone == null)
-			return;
-		for (int i = 0; i <= 3; i++) {					//if not find any other
-			if (feedingBelts [i] != null) {
-				if (feedingBelts [i].inputStorage [RevertLocation (i)] != null) {
-					if (feedingBelts [i].inputStorage [RevertLocation (i)].myItem == null) {
-						feedingBelts [i].inputStorage [RevertLocation (i)].myItem = toBeGone.myItem;
-						toBeGone = null;
-						feedingBelts [i].UpdateItemLocations ();
-						break;
-					}
-				}
-			}
-
-			if (feedingItems [i] != null) {
-				if (feedingItems [i].TryAccepting(toBeGone.myItem)) {
-					toBeGone = null;
-					break;
-				}
-			}
-		}
-
-		UpdateItemLocations ();
-	}
 
 	public void UpdateItemLocations () {
 
 		if (middleStorage != null) {
 			if (middleStorage.myItem != null) {
-				middleStorage.myItem.transform.position = transform.position + middleStorage.offSet;
+				middleStorage.myItem.placeToBe = transform.position + middleStorage.offSet;
 			}
 		}
 
 		for (int i = 0; i <= 3; i++) {
 			
-			if (outputStorage [i] != null) {
+			if (outputStorage [i].n != -1) {
 				if (outputStorage [i].myItem != null) {
-					outputStorage [i].myItem.transform.position = transform.position + outputStorage [i].offSet;
+					outputStorage [i].myItem.placeToBe = transform.position + outputStorage [i].offSet;
 				}
 			}
 
-			if (inputStorage [i] != null) {
+			if (inputStorage [i].n != -1) {
 				if (inputStorage [i].myItem != null) {	
-					inputStorage [i].myItem.transform.position = transform.position + inputStorage [i].offSet;
+					inputStorage [i].myItem.placeToBe = transform.position + inputStorage [i].offSet;
 				}
 			}
 
 		}
 
-		if (toBeGone != null) {
+		/*if (toBeGone != null) {
 			if (toBeGone.myItem != null) {
 				toBeGone.myItem.transform.position = transform.position + (toBeGone.offSet * toBeGoneMult) + new Vector3 (0, 0, -0.5f);
 			}
-		}
+		}*/
 	}
 
-	//[System.Serializable]
+	[System.Serializable]
 	public class Place {
 
-		public GameObject myItem;
+		public MovingObject myItem;
 		public Vector3 offSet = Vector3.zero;
-		public int n = 0;
+		public int n = -1;
 
 		public Place (Vector3 myOffset, int m){
 			offSet = myOffset;
@@ -218,17 +213,51 @@ public class BeltScript : MonoBehaviour {
 		}
 	}
 
+	public void UpdatePulseControls () {
+
+		BeltPulseControl.pulseEvent -= PrimalBackwardsPulse;
+
+		//print ("UpdatePulseControls - " + gameObject.name);
+		//print ("update pulse count");
+		reqPulseCount = 0;
+		curPulseCount = 0;
+		//print ("NEW BELT " + gameObject.name + " - " + reqPulseCount);
+		for (int i = 0; i <= 3; i++) {					//if not find any other
+			if (feedingBelts [i] != null) {
+				reqPulseCount++;
+				//print ("pulse count increased " + reqPulseCount);
+			}
+		}
+		/*for (int i = 0; i <= 3; i++) {					//if not find any other
+			if (feedingItems [i] != null) {
+				reqPulseCount--;
+				print ("pulse count decreased " + reqPulseCount);
+			}
+		}*/
+
+		curPulseCount = 0;
+		if (reqPulseCount == 0) {
+			BeltPulseControl.pulseEvent += PrimalBackwardsPulse;
+		}
+
+		if (reqPulseCount < curPulseCount)
+			Debug.LogError ("some weird shit happened");
+	}
 
 	public void UpdateGraphic () {
 
 		for (int i = 0; i <= 3; i++) {					//if not find any other
-			if (inputStorage [i] != null) {
-				inputStorage [i] = null;
-			}
-			if (outputStorage [i] != null) {
-				outputStorage [i] = null;
-			}
+			if(inputStorage [i].myItem != null)
+				Destroy (inputStorage [i].myItem.gameObject);
+			inputStorage [i] = new Place (new Vector3 (0, 1, 0), -1);
+
+			if (outputStorage [i].myItem != null)
+				Destroy (outputStorage [i].myItem.gameObject);
+			outputStorage [i] = new Place (new Vector3 (0, 1, 0), -1);
 		}
+
+		if(middleStorage.myItem != null)
+			Destroy (middleStorage.myItem.gameObject);
 		middleStorage = new Place (Vector3.zero, 0);
 
 		foreach (GameObject gam in oldShit) {
@@ -298,6 +327,8 @@ public class BeltScript : MonoBehaviour {
 				n++;
 			}
 		}
+
+		UpdatePulseControls ();
 	}
 
 	int RevertLocation(int location){
@@ -320,6 +351,14 @@ public class BeltScript : MonoBehaviour {
 			Debug.LogError("given wrong number: " + location);
 			return -1;
 			break;
+		}
+	}
+
+	void CycleArray (ref int number){
+		if (number == 3) {
+			number = 0;
+		} else {
+			number++;
 		}
 	}
 }
