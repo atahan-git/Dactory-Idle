@@ -12,10 +12,12 @@ public class BeltScript : MonoBehaviour {
 	[HideInInspector]
 	public Place toBeGone;
 
-	[HideInInspector]
+	//[HideInInspector]
 	public PlacedItemBaseScript[] feedingItems = new PlacedItemBaseScript[4];
+	public PlacedItemBaseScript[] inputItems = new PlacedItemBaseScript[4];
 	//[HideInInspector]
 	public BeltScript[] feedingBelts = new BeltScript[4];
+	public BeltScript[] inpuBelts = new BeltScript[4];
 
 	[HideInInspector]
 	public bool[] inLocations = new bool[4];
@@ -79,20 +81,26 @@ public class BeltScript : MonoBehaviour {
 				}
 			}
 		}
+			
 
 		if (middleStorage.myItem != null) {					//if middle is full but there is an empty out conveyor fill it
+			sPlace = -1;
 			for (int i = 0; i <= 3; i++) {
 				if (outputStorage [i] != null) {
 					if (outputStorage [i].myItem == null) {
 						if (i != m) {
 							outputStorage [i].myItem = middleStorage.myItem;
 							middleStorage.myItem = null;
+							sPlace = i;
 							m = i;
 							break;
 						}
 					}
 				}
 			}
+			if (sPlace == -1)								//if cant find set the last one
+				sPlace = m;
+			
 			if (middleStorage.myItem != null) {				//hardcore shit m8 prob gonna fail but....... yeah
 				if (outputStorage [m] != null) {
 					if (outputStorage [m].myItem == null) {
