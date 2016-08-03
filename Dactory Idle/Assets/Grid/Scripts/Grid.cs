@@ -228,20 +228,26 @@ public class Grid : MonoBehaviour {
 	}
 
 	public bool Load(){
-		if (File.Exists (Application.persistentDataPath + "/" + saveName + ".banana")) {
-			BinaryFormatter bf = new BinaryFormatter ();
-			FileStream file = File.Open (Application.persistentDataPath + "/" + saveName + ".banana", FileMode.Open);
-			Tiles data = (Tiles)bf.Deserialize (file);
-			file.Close ();
+		try {
+			if (File.Exists (Application.persistentDataPath + "/" + saveName + ".banana")) {
+				BinaryFormatter bf = new BinaryFormatter ();
+				FileStream file = File.Open (Application.persistentDataPath + "/" + saveName + ".banana", FileMode.Open);
+				Tiles data = (Tiles)bf.Deserialize (file);
+				file.Close ();
 
-			myTilesIDs = data;
-			gridSizeX = myTilesIDs.tiles.GetLength (0);
-			gridSizeY = myTilesIDs.tiles.GetLength (1);
-			myTiles = new GameObject[gridSizeX, gridSizeY];
-			print ("Data Loaded");
-			return true;
-		} else {
-			print ("No Data Found");
+				myTilesIDs = data;
+				gridSizeX = myTilesIDs.tiles.GetLength (0);
+				gridSizeY = myTilesIDs.tiles.GetLength (1);
+				myTiles = new GameObject[gridSizeX, gridSizeY];
+				print ("Data Loaded");
+				return true;
+			} else {
+				print ("No Data Found");
+				return false;
+			}
+		} catch {
+			File.Delete (Application.persistentDataPath + "/" + saveName + ".banana");
+			print ("Corrupt Data Deleted");
 			return false;
 		}
 	}

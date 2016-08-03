@@ -3,8 +3,8 @@ using System.Collections;
 
 public class BeltPulseControl : MonoBehaviour {
 
-	public delegate void ForwardsPulse();
-	public static event ForwardsPulse forwardsPulse;
+	/*public delegate void ForwardsPulse();
+	public static event ForwardsPulse forwardsPulse;*/
 
 	public delegate void BackwardsPulse(Object sender);
 	public static event BackwardsPulse pulseEvent;

@@ -3,6 +3,10 @@ using System.Collections;
 
 public class PlacedItemBaseScript : MonoBehaviour {
 
+	public int x = 0;
+	public int y = 0;
+	public int type = 0;
+
 	public BeltScript[] outConveyors = new BeltScript[99];
 	public int n_out = 0;
 	public BeltScript[] inConveyors = new BeltScript[99];
@@ -18,6 +22,7 @@ public class PlacedItemBaseScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		//BeltPulseControl.secondPulse += SecondPulse;
+		DataSaver.saveEvent += SaveYourself;
 	}
 	
 	// Update is called once per frame
@@ -50,6 +55,15 @@ public class PlacedItemBaseScript : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+	void SaveYourself () {
+		DataSaver.ItemsToBeSaved[DataSaver.n] = new DataSaver.ItemData(type, x, y);
+		DataSaver.n++;
+	}
+
+	void OnDestroy () {
+		DataSaver.saveEvent -= SaveYourself;
 	}
 
 	/*public void SecondPulse(){

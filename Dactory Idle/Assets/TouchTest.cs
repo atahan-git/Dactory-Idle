@@ -7,6 +7,8 @@ public class TouchTest : MonoBehaviour {
 
 	public GameObject[] testObjects;
 
+	public GameObject myPrefab;
+
 	// Use this for initialization
 	void Start () {
 		mycam = Camera.main;
@@ -25,6 +27,10 @@ public class TouchTest : MonoBehaviour {
 				}
 					
 			}catch{}
+		}
+
+		if (Input.GetKeyDown (KeyCode.T)) {
+			Instantiate (myPrefab, myPrefab.transform.position, myPrefab.transform.rotation);
 		}
 	}
 }

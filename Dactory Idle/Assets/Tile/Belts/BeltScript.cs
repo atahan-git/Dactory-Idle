@@ -33,17 +33,19 @@ public class BeltScript : MonoBehaviour {
 	public BeltSet mySet;
 
 	float itemOffset = 0.33f;
-	float toBeGoneMult = 1.5f;
+	//float toBeGoneMult = 1.5f;
 
 	[HideInInspector]
 	public GameObject[] oldShit = new GameObject[20];
 
 	// Use this for initialization
 	void Start () {
+		DataSaver.saveEvent += SaveYourself;
 		middleStorage = new Place (Vector3.zero, 0);
 	}
 	
 	void OnDestroy () {
+		DataSaver.saveEvent -= SaveYourself;
 	}
 		
 	/*public void ForwardsPulse () {
@@ -68,7 +70,7 @@ public class BeltScript : MonoBehaviour {
 
 	public void BackwardsPulse () { 
 		if (reqPulseCount < curPulseCount)
-			Debug.LogError ("too many backward calls");
+			Debug.LogError ("too many backward calls - " + gameObject.name);
 
 		curPulseCount++;
 
@@ -216,6 +218,7 @@ public class BeltScript : MonoBehaviour {
 	public void UpdatePulseControls () {
 
 		BeltPulseControl.pulseEvent -= PrimalBackwardsPulse;
+		//print (feedingBelts);
 
 		//print ("UpdatePulseControls - " + gameObject.name);
 		//print ("update pulse count");
@@ -361,4 +364,113 @@ public class BeltScript : MonoBehaviour {
 			number++;
 		}
 	}
+
+	public void PlaceSelf (int myX, int myY, bool[] myins, bool[] myouts) {
+
+		x = myX;
+		y = myY;
+		inLocations = myins;
+		outLocations = myouts;
+
+		DataSaver.beltEvent += InstantiationUpdate;
+	}
+
+	void SaveYourself () {
+		DataSaver.BeltsToBeSaved [DataSaver.b] = new DataSaver.BeltData (x, y, inLocations, outLocations);
+		DataSaver.b++;
+	}
+
+	public void InstantiationUpdate () {
+
+		TileBaseScript myTileS = Grid.s.myTiles [x, y].GetComponent<TileBaseScript> ();
+		transform.position = myTileS.transform.position;
+		myTileS.areThereItem = true;
+		myTileS.myItem = gameObject;
+
+
+		for (int i = 0; i <= 3; i++) {
+			if (inLocations [i]) {
+
+				switch (i) {
+				case 0:
+					CheckSetItem (x - 1, y - 0, 0, true);
+					break;
+				case 1:
+					CheckSetItem (x - 0, y + 1, 1, true);
+					break;
+				case 2:
+					CheckSetItem (x + 1, y - 0, 2, true);
+					break;
+				case 3:
+					CheckSetItem (x - 0, y - 1, 3, true);
+					break;
+				default:
+					print ("cry like a bitch");
+					break;
+				}
+			}
+
+			if (outLocations [i]) {
+
+				switch (i) {
+				case 0:
+					CheckSetItem (x - 1, y - 0, 0, false);
+					break;
+				case 1:
+					CheckSetItem (x - 0, y + 1, 1, false);
+					break;
+				case 2:
+					CheckSetItem (x + 1, y - 0, 2, false);
+					break;
+				case 3:
+					CheckSetItem (x - 0, y - 1, 3, false);
+					break;
+				default:
+					print ("cry like a bitch");
+					break;
+				}
+			}
+		}
+
+		UpdateGraphic ();
+		Invoke("UpdatePulseControls",0.1f);
+	}
+
+	void CheckSetItem (int myX, int myY, int i, bool isin) {
+		TileBaseScript myTile = Grid.s.myTiles [myX, myY].GetComponent<TileBaseScript> ();
+
+		if(myTile.areThereItem){
+			PlacedItemBaseScript myItem = myTile.myItem.GetComponent<PlacedItemBaseScript> ();
+			BeltScript myBelt = myTile.myItem.GetComponent<BeltScript> ();
+
+
+			if (myItem != null) {
+				if (isin) {
+					inputItems [i] = myItem;
+					myItem.outConveyors [myItem.n_out] = this;
+					myItem.n_out++;
+				} else {
+					feedingItems [i] = myItem;
+					myItem.inConveyors [myItem.n_in] = this;
+					myItem.n_in++;
+				}
+					
+
+			} else if (myBelt != null) {
+				if (isin) {
+					inputBelts [i] = myBelt;
+					myBelt.feedingBelts [RevertLocation(i)] = this;
+				} else {
+					feedingBelts [i] = myBelt;
+					myBelt.inputBelts [RevertLocation(i)] = this;
+				}
+
+
+			} else {
+				Debug.LogError (myTile + " = " + myX + " - " + myY + "weird shit happened there");
+			}
+		}
+	}
+
+
 }

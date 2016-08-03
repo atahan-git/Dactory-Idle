@@ -51,7 +51,7 @@ public class ItemPlacer : MonoBehaviour {
 			isPlacingItem = false;
 			if (curItem != null) {
 				itemScript.PlaceSelf ();
-				Destroy (curItem.gameObject);
+				//Destroy (curItem.gameObject);
 				curItem = null;
 				itemScript = null;
 			}
@@ -129,6 +129,8 @@ public class ItemPlacer : MonoBehaviour {
 					if (!tileS.areThereItem) {											//there are no items here so place a belt
 						BeltScript myBelt = ((GameObject)Instantiate (beltPrefab, tileS.transform.position, Quaternion.identity)).GetComponent<BeltScript> ();
 						myBelt.gameObject.name = myBelt.gameObject.name + " - " + n;
+						myBelt.x = tileS.x;
+						myBelt.y = tileS.y;
 						n++;
 						tileS.areThereItem = true;
 						tileS.myItem = myBelt.gameObject;

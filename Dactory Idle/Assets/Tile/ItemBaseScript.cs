@@ -20,6 +20,12 @@ public class ItemBaseScript : MonoBehaviour {
 	bool isPlaceAble = true;
 	// Use this for initialization
 	void Start () {
+		if (mySprites [0] == null)
+			PlaceSprites ();
+	}
+
+	void PlaceSprites () {
+		print ("placed Sprites");
 		int n = 0;
 		for (int y = 0; y < shape.rows.Length; y++) {
 			for (int x = 0; x < shape.rows[y].row.Length; x++) {
@@ -45,32 +51,74 @@ public class ItemBaseScript : MonoBehaviour {
 	}
 
 	public void PlaceSelf(){
+		if (mySprites [0] == null)
+			PlaceSprites ();
+
 		CheckPlaceable();
 
-		if(isPlaceAble){
-			GameObject InstantiatedItem = (GameObject)Instantiate (myPlacedItem, transform.position, Quaternion.identity);
-			PlacedItemBaseScript InstItemScript = InstantiatedItem.GetComponent<PlacedItemBaseScript> ();
+		//print ("item placer call");
 
-			foreach (GameObject thisSprite in mySprites) {
-				ItemSprite mySprite;
-				try{
-					mySprite = thisSprite.GetComponentInChildren<ItemSprite> ();
-				}catch{
-					return;
-				}
+		if(isPlaceAble){
+			_PlaceSelf ();
+		}
+	}
+
+	public void PlaceSelf (int myX, int myY) {
+		//print ("saver call");
+
+		x = myX;
+		y = myY;
+
+		TileBaseScript myTileS = Grid.s.myTiles [x, y].GetComponent<TileBaseScript> ();
+		transform.position = myTileS.transform.position;
+		myTileS.areThereItem = true;
+		myTileS.myItem = gameObject;
+		//print (x + " - " + y + " - " + Grid.s.myTiles [x, y].transform.position);
+
+		//print ("saver call2");
+		if (mySprites [0] == null) {
+			PlaceSprites ();
+		}
+
+		//print ("saver call3");
+
+		_PlaceSelf ();
+	}
+
+	void _PlaceSelf () {
+
+		//print ("Place self");
+
+		GameObject InstantiatedItem = (GameObject)Instantiate (myPlacedItem, transform.position, Quaternion.identity);
+		PlacedItemBaseScript InstItemScript = InstantiatedItem.GetComponent<PlacedItemBaseScript> ();
+
+		foreach (GameObject thisSprite in mySprites) {
+			ItemSprite mySprite = null;
+			try{
+				mySprite = thisSprite.GetComponentInChildren<ItemSprite> ();
+			}catch{
+				
+			}
+			if (mySprite != null) {
 				int checkX = x - mySprite.x;
 				int checkY = y - mySprite.y;
 
-				try{
+				try {
 					TileBaseScript myTile = Grid.s.myTiles [checkX, checkY].GetComponent<TileBaseScript> ();
 					//myTile.itemPlaceable = false;
 					myTile.areThereItem = true;
 					myTile.myItem = InstantiatedItem;
-					InstItemScript.tilesCovered[InstItemScript.n_cover] = myTile;
+					InstItemScript.tilesCovered [InstItemScript.n_cover] = myTile;
 					InstItemScript.n_cover++;
-				}catch{}
+				} catch {
+				}
 			}
 		}
+
+		InstItemScript.x = x;
+		InstItemScript.y = y;
+		//print ("destroy");
+		Destroy (gameObject);
 	}
 
 	void CheckPlaceable(){
